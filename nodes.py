@@ -4,7 +4,9 @@ ComfyUI节点实现
 """
 
 import torch
+import random
 from typing import Any, Tuple, Optional, Dict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from .api_client import FluxKontextAPI, FluxKontextAPIError
 from .config import default_config
 from .utils import download_image, pil_to_tensor, tensor_to_base64, format_error_message
@@ -17,39 +19,19 @@ class FluxKontextNode:
         """定义节点输入类型"""
         return {
             "required": {
-                "prompt": ("STRING", {
-                    "multiline": True,
-                    "default": "A beautiful landscape painting",
-                    "placeholder": "Enter image description prompt"
-                }),
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+                "model": (["flux-kontext-pro", "flux-kontext-max"],),
+                "num_images": ([1, 2, 4], {"default": 1}),
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
+                "guidance_scale": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 10.0, "step": 0.1}),
+                "num_inference_steps": ("INT", {"default": 28, "min": 1, "max": 100}),
+                "aspect_ratio": (default_config.SUPPORTED_ASPECT_RATIOS,),
+                "output_format": (default_config.SUPPORTED_OUTPUT_FORMATS,),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
             },
             "optional": {
                 "image": ("IMAGE",),
-                "seed": ("INT", {
-                    "default": 0, "min": 0, "max": 0xffffffffffffffff,
-                    "step": 1, "display": "number"
-                }),
-                "guidance_scale": ("FLOAT", {
-                    "default": 3.0, "min": 0.0, "max": 10.0, "step": 0.1,
-                    "round": 0.01, "display": "slider"
-                }),
-                "num_inference_steps": ("INT", {
-                    "default": 28, "min": 1, "max": 100, "step": 1,
-                    "display": "slider"
-                }),
-                "aspect_ratio": (default_config.SUPPORTED_ASPECT_RATIOS, {
-                    "default": "1:1"
-                }),
-                "output_format": (default_config.SUPPORTED_OUTPUT_FORMATS, {
-                    "default": "jpeg"
-                }),
-                "safety_tolerance": ("INT", {
-                    "default": 2, "min": 0, "max": 6, "step": 1,
-                    "display": "slider"
-                }),
-                "prompt_upsampling": ("BOOLEAN", {"default": False}),
-                "webhook_url": ("STRING", {"default": "", "placeholder": "Optional: Webhook URL"}),
-                "webhook_secret": ("STRING", {"default": "", "placeholder": "Optional: Webhook Secret"}),
             }
         }
     
@@ -76,77 +58,91 @@ class FluxKontextNode:
 
     def execute(self, 
                 prompt: str,
-                image: Optional[torch.Tensor] = None,
-                seed: int = 0,
-                guidance_scale: float = 3.0,
-                num_inference_steps: int = 28,
-                aspect_ratio: str = "1:1",
-                output_format: str = "jpeg",
-                safety_tolerance: int = 2,
-                prompt_upsampling: bool = False,
-                webhook_url: str = "",
-                webhook_secret: str = "") -> Tuple[torch.Tensor, str, str]:
+                model: str,
+                num_images: int,
+                seed: int,
+                guidance_scale: float,
+                num_inference_steps: int,
+                aspect_ratio: str,
+                output_format: str,
+                safety_tolerance: int,
+                prompt_upsampling: bool,
+                image: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, str, str]:
         """
         节点执行方法
         """
-        # 从配置中获取API密钥
         api_key = default_config.get_api_key()
-
-        # 检查API密钥是否存在
         if not api_key:
             return self._create_error_result(default_config.api_key_error_message, image)
 
-        try:
-            # 初始化API客户端
-            api_client = FluxKontextAPI(api_key=api_key)
-            
-            # 4. 处理图像输入
-            input_image_b64 = None
-            status_mode = "文生图"
-            if image is not None:
-                input_image_b64 = tensor_to_base64(image, output_format)
-                status_mode = "图生图"
+        input_image_b64 = None
+        status_mode = "文生图"
+        if image is not None:
+            input_image_b64 = tensor_to_base64(image, output_format)
+            status_mode = "图生图"
 
-            # 5. 准备API参数
-            api_params = {
-                "prompt": prompt,
-                "input_image": input_image_b64,
-                "seed": seed,
-                "aspect_ratio": aspect_ratio,
-                "output_format": output_format,
-                "safety_tolerance": safety_tolerance,
-                "prompt_upsampling": prompt_upsampling,
-                "guidance_scale": guidance_scale,
-                "num_inference_steps": num_inference_steps
-            }
-            if webhook_url.strip():
-                api_params["webhook_url"] = webhook_url.strip()
-            if webhook_secret.strip():
-                api_params["webhook_secret"] = webhook_secret.strip()
-            
-            # 6. 调用API
-            print(f"正在生成图像... 模式: {status_mode}, 提示词: {prompt[:80]}...")
-            # 现在，api_client会直接返回一个 (PIL图像, URL) 的元组，或者抛出异常
-            result_image_pil, result_image_url = api_client.generate_image(**api_params)
-            
-            # 7. 将PIL图像转换为Tensor
-            result_image_tensor = pil_to_tensor(result_image_pil)
-            
-            # 8. 准备输出
-            status_message = f"成功 | {status_mode} | {result_image_pil.width}x{result_image_pil.height}"
-            
-            return {
-                "ui": {"string": [f"生成成功！\n图片URL: {result_image_url}\n状态: {status_message}"]},
-                "result": (result_image_tensor, result_image_url, status_message)
-            }
+        # --- 并发执行逻辑 ---
+        results_pil = []
+        result_urls = []
+        errors = []
 
-        except FluxKontextAPIError as e:
-            # 直接显示来自API客户端的、清晰的错误信息
-            return self._create_error_result(f"❌ API 调用失败: {str(e)}", image)
-        except Exception as e:
-            # 捕获其他意料之外的错误
-            error_msg = format_error_message(e, "执行节点时发生未知错误")
-            return self._create_error_result(error_msg, image)
+        def generate_single_image(current_seed):
+            try:
+                api_client = FluxKontextAPI(api_key=api_key)
+                api_params = {
+                    "prompt": prompt,
+                    "model": model,
+                    "input_image": input_image_b64,
+                    "seed": current_seed,
+                    "aspect_ratio": aspect_ratio,
+                    "output_format": output_format,
+                    "safety_tolerance": safety_tolerance,
+                    "prompt_upsampling": prompt_upsampling,
+                    "guidance_scale": guidance_scale,
+                    "num_inference_steps": num_inference_steps
+                }
+                pil_image, url = api_client.generate_image(**api_params)
+                return pil_image, url
+            except Exception as e:
+                return e
+
+        with ThreadPoolExecutor(max_workers=min(num_images, 4)) as executor:
+            # 使用初始种子或为每次迭代生成新种子
+            seeds = [seed + i if seed != 0 else random.randint(0, 0xffffffffffffffff) for i in range(num_images)]
+            
+            future_to_seed = {executor.submit(generate_single_image, s): s for s in seeds}
+            
+            for future in as_completed(future_to_seed):
+                try:
+                    result = future.result()
+                    if isinstance(result, Exception):
+                        errors.append(f"种子 {future_to_seed[future]} 执行失败: {result}")
+                    else:
+                        pil_img, url = result
+                        results_pil.append(pil_img)
+                        result_urls.append(url)
+                except Exception as exc:
+                    errors.append(f"种子 {future_to_seed[future]} 执行时发生未知异常: {exc}")
+
+        if not results_pil:
+            error_summary = "\n".join(errors)
+            return self._create_error_result(f"所有图像生成均失败。\n{error_summary}", image)
+
+        # --- 处理成功的结果 ---
+        result_image_tensor = pil_to_tensor(results_pil)
+        
+        # 准备输出信息
+        success_count = len(results_pil)
+        final_status = f"成功 {success_count}/{num_images} 张 | "
+        if errors:
+            final_status += f"失败 {len(errors)} 张: {'; '.join(errors)[:150]}..."
+        
+        final_urls = "\n".join(result_urls)
+        
+        return {
+            "ui": {"string": [f"{final_status}\nURLs:\n{final_urls}"]},
+            "result": (result_image_tensor, final_urls, final_status)
+        }
 
 # 注册节点到ComfyUI
 NODE_CLASS_MAPPINGS = {

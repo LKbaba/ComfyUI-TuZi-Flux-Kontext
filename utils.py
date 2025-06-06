@@ -36,31 +36,32 @@ def download_image(url: str, timeout: int = 30) -> Optional[Image.Image]:
         print(f"下载图像失败: {url}, 错误: {str(e)}")
         return None
 
-def pil_to_tensor(image: Image.Image) -> torch.Tensor:
+def pil_to_tensor(pil_images: Union[Image.Image, List[Image.Image]]) -> torch.Tensor:
     """
-    将PIL图像转换为ComfyUI张量格式
+    将单个PIL图像或PIL图像列表转换为ComfyUI图像张量
+    """
+    if not isinstance(pil_images, list):
+        pil_images = [pil_images]
+
+    tensors = []
+    for pil_image in pil_images:
+        # 确保图像是RGB格式
+        if pil_image.mode != 'RGB':
+            pil_image = pil_image.convert('RGB')
+            
+        img_array = np.array(pil_image).astype(np.float32) / 255.0
+        tensor = torch.from_numpy(img_array)[None,]
+        tensors.append(tensor)
     
-    Args:
-        image: PIL图像对象
+    if not tensors:
+        # 如果列表为空，返回一个空的占位符张量
+        return torch.empty((0, 1, 1, 3), dtype=torch.float32)
         
-    Returns:
-        torch.Tensor: 形状为 [1, H, W, 3] 的张量，值范围 [0, 1]
-    """
-    # 确保图像是RGB格式
-    if image.mode != 'RGB':
-        image = image.convert('RGB')
-    
-    # 转换为numpy数组
-    image_array = np.array(image).astype(np.float32) / 255.0
-    
-    # 转换为torch张量并调整维度 [H, W, C] -> [1, H, W, C]
-    tensor = torch.from_numpy(image_array).unsqueeze(0)
-    
-    return tensor
+    return torch.cat(tensors, dim=0)
 
 def tensor_to_pil(tensor: torch.Tensor) -> Image.Image:
     """
-    将ComfyUI张量转换为PIL图像
+    将ComfyUI图像张量转换为PIL图像
     
     Args:
         tensor: 形状为 [1, H, W, 3] 或 [H, W, 3] 的张量

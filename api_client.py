@@ -122,6 +122,7 @@ class FluxKontextAPI:
     
     def generate_image(self, 
                       prompt: str,
+                      model: str = "flux-kontext-pro",
                       input_image: Optional[str] = None,
                       seed: Optional[int] = None,
                       aspect_ratio: Optional[str] = None,
@@ -137,6 +138,7 @@ class FluxKontextAPI:
         
         Args:
             prompt: 文本提示
+            model: 模型名称
             input_image: Base64编码的输入图像
             seed: 随机种子
             aspect_ratio: 宽高比
@@ -156,7 +158,7 @@ class FluxKontextAPI:
         """
         # 构建请求数据
         payload = {
-            "model": self.config.get_config('model'),
+            "model": model,
             "prompt": prompt
         }
         
