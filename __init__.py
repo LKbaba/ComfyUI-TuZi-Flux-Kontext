@@ -10,5 +10,6 @@ __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
 # 版本信息
 __version__ = "1.0.0"
 
-# 插件信息
-WEB_DIRECTORY = "./web" 
+# 插件作者信息
+__author__ = "ComfyUI-TuZi-Flux-Kontext Team"
+__description__ = "兔子AI Flux-Kontext图像生成节点 - 支持文生图和图生图的高质量AI图像生成" 

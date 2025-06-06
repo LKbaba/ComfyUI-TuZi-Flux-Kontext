@@ -1,30 +1,43 @@
 # ComfyUI-TuZi-Flux-Kontext
 
-🐰 **Flux-Kontext Pro** 的 ComfyUI 自定义节点，使用官方标准API，支持文生图和图生图。
+�� **Flux-Kontext Pro/Max** 的 ComfyUI 自定义节点，使用兔子AI官方API，支持文生图和图生图。
 
 ## ✨ 特性
 
-- 🎨 **高质量图像生成** - 基于 Flux-Kontext-Pro 模型，支持文生图和图生图。
-- ⚙️ **丰富的参数控制** - 支持调整指导强度(Guidance)、推理步数(Steps)、宽高比、种子等核心参数。
-- 🔑 **专业的密钥管理** - 通过 `.env` 文件或环境变量配置API密钥，安全且方便。
-- 🛡️ **健壮的错误处理** - 在API密钥未配置时提供清晰的中文指引，并在节点执行失败时尽量维持工作流不中断。
-- 🔧 **统一的全功能节点** - 将所有功能集成于一个节点，简洁易用。
+- 🎨 **高质量图像生成** - 支持 Flux-Kontext-Pro 和 Flux-Kontext-Max 两个模型，提供文生图和图生图功能
+- 🔥 **批量生成** - 支持同时生成 1、2、4 张图像，提高生成效率
+- ⚙️ **丰富的参数控制** - 支持调整指导强度(Guidance)、推理步数(Steps)、宽高比、种子等核心参数
+- 🔑 **专业的密钥管理** - 通过 `.env` 文件或环境变量配置API密钥，安全且方便
+- 🛡️ **健壮的错误处理** - 在API密钥未配置时提供清晰的中文指引，并在节点执行失败时尽量维持工作流不中断
+- ⚡ **并发生成** - 多图像生成时使用线程池并发执行，显著提升生成速度
+- 🎯 **智能种子管理** - 支持固定种子、递增种子和随机种子等多种生成模式
 
 ## 📦 安装
 
-1.  打开您的ComfyUI安装目录。
-2.  进入 `custom_nodes` 文件夹。
-3.  通过 `git` 克隆本项目:
-    ```bash
-    cd ComfyUI/custom_nodes/
-    git clone https://github.com/your-username/ComfyUI-TuZi-Flux-Kontext.git
-    ```
-4.  安装依赖:
-    ```bash
-    cd ComfyUI-TuZi-Flux-Kontext
-    pip install -r requirements.txt
-    ```
-5.  重启ComfyUI。
+### 方法一：Git 克隆 (推荐)
+
+1. 打开您的ComfyUI安装目录
+2. 进入 `custom_nodes` 文件夹
+3. 克隆本项目：
+   ```bash
+   cd ComfyUI/custom_nodes/
+   git clone https://github.com/your-username/ComfyUI-TuZi-Flux-Kontext.git
+   ```
+4. 安装依赖：
+   ```bash
+   cd ComfyUI-TuZi-Flux-Kontext
+   pip install -r requirements.txt
+   ```
+5. 重启ComfyUI
+
+### 方法二：手动下载
+
+1. 下载本项目的ZIP文件并解压到 `ComfyUI/custom_nodes/ComfyUI-TuZi-Flux-Kontext/`
+2. 安装依赖：
+   ```bash
+   pip install torch torchvision requests numpy pillow python-dotenv
+   ```
+3. 重启ComfyUI
 
 ## 🔑 API 密钥设置
 
@@ -32,55 +45,103 @@
 
 1.  **获取密钥**: 访问 [兔子AI官网](https://tu-zi.com) 并登录，在控制台获取您的 API 密钥。
 
-2.  **配置密钥**:
-    -   在 `ComfyUI/custom_nodes/ComfyUI-TuZi-Flux-Kontext/` 目录下，创建一个名为 `.env` 的文件。
-    -   在该文件中，添加以下内容，并将 `your-api-key-here` 替换为您真实的密钥:
-        ```
-        TUZI_API_KEY=your-api-key-here
-        ```
-    -   保存文件并重启ComfyUI。
+### 配置方法
 
-*或者，您也可以通过设置名为 `TUZI_API_KEY` 的系统环境变量来配置密钥。*
+**推荐方式：使用 .env 文件**
 
-如果未正确配置密钥，节点将显示红色的错误信息，并提供详细的中文设置指引。
+1. 在 `ComfyUI/custom_nodes/ComfyUI-TuZi-Flux-Kontext/` 目录下创建 `.env` 文件
+2. 添加以下内容：
+   ```
+   TUZI_API_KEY=your-api-key-here
+   ```
+3. 保存文件并重启ComfyUI
+
+**或者设置环境变量：**
+```bash
+# Windows
+set TUZI_API_KEY=your-api-key-here
+
+# Linux/Mac
+export TUZI_API_KEY=your-api-key-here
+```
+
+⚠️ **注意**：如果未正确配置密钥，节点将显示红色错误信息并提供详细的设置指引。
 
 ## 🚀 使用方法
 
-在ComfyUI中，添加 `🐰 Flux Kontext API` 节点 (位于 `TuZi/Flux-Kontext` 分类下)。
+### 添加节点
 
-### 输入参数
+在ComfyUI中，添加 `🐰 Flux Kontext API` 节点，位于 `TuZi/Flux-Kontext` 分类下。
 
--   **`prompt`**: 图像的文本描述。
--   **`image` (可选)**: 连接一个图像输入，即可启用**图生图**模式。
--   **`seed`**: 随机种子。
--   **`control_after_generate`**: 控制种子在每次生成后是否变化 (固定/递增/随机)。
--   **`guidance_scale`**: 指导强度。数值越高，图像与提示词的关联性越强。
--   **`num_inference_steps`**: 推理步数。步数越多，细节可能越丰富，但生成时间也越长。
--   **`aspect_ratio`**: 预设的图像宽高比。
--   **`output_format`**: 输出图像的格式 (jpeg/png)。
--   **`safety_tolerance`**: 内容安全容忍度 (0-6)。
--   **`prompt_upsampling`**: 是否启用提示词增强。
--   **`webhook_url` (可选)**: 用于接收生成结果的Webhook URL。
--   **`webhook_secret` (可选)**: Webhook的签名密钥。
+### 输入参数说明
 
-### 输出
+#### 必需参数
 
--   **`image`**: 生成的图像，可连接到 `Preview Image` 等节点。
--   **`image_url`**: 生成图像的URL地址。
--   **`status`**: 显示生成状态，成功或失败的详细信息。
+- **`prompt`** (文本): 图像描述提示词，支持多行输入
+- **`model`**: 选择模型
+  - `flux-kontext-pro`: 标准版本，平衡质量与速度
+  - `flux-kontext-max`: 增强版本，更高质量但生成时间更长
+- **`num_images`**: 生成图像数量 (1/2/4张)
+- **`seed`**: 随机种子 (0表示随机，非0表示固定种子)
+- **`guidance_scale`**: 指导强度 (0.0-10.0，默认3.0)
+  - 数值越高，生成图像与提示词关联性越强
+- **`num_inference_steps`**: 推理步数 (1-100，默认28)
+  - 步数越多，细节可能越丰富，但生成时间更长
+- **`aspect_ratio`**: 图像宽高比
+  - 支持从 21:9 到 9:21 的多种比例
+- **`output_format`**: 输出格式 (jpeg/png)
+- **`safety_tolerance`**: 内容安全容忍度 (0-6，默认2)
+- **`prompt_upsampling`**: 是否启用提示词增强 (默认关闭)
+
+#### 可选参数
+
+- **`image`**: 输入图像 (连接后启用图生图模式)
+
+### 输出结果
+
+- **`image`**: 生成的图像张量，可连接到其他节点
+- **`image_url`**: 生成图像的URL地址
+- **`status`**: 生成状态信息，包括成功数量和错误详情
+
+### 使用技巧
+
+1. **文生图模式**：只填写 `prompt` 参数，不连接 `image` 输入
+2. **图生图模式**：连接图像到 `image` 输入，调整 `guidance_scale` 控制原图影响程度
+3. **批量生成**：选择 `num_images` 为 2 或 4，系统会并发生成提升速度
+4. **种子控制**：
+   - 种子为0：每次生成随机结果
+   - 种子非0：每张图使用递增种子 (seed, seed+1, seed+2...)
 
 ## ❗ 常见问题
 
--   **节点变红并提示未找到API密钥**:
-    请严格按照上方的 **API 密钥设置** 步骤操作，确保 `.env` 文件位置正确、内容格式无误，并重启ComfyUI。
--   **生成失败/返回错误**:
-    请检查 `status` 输出的错误信息。常见原因包括：账户余额不足、提示词触发安全策略、网络问题等。
--   **图生图效果不佳**:
-    尝试调整 `guidance_scale` 参数。较低的值会给予输入图像更多权重，较高的值会更偏向于文本提示。
+### 节点错误
 
-## 📄 许可证
+**Q: 节点变红并提示"未找到API密钥"**
+A: 请确保：
+- `.env` 文件位于正确位置
+- 文件内容格式正确 (`TUZI_API_KEY=your-key`)
+- 重启了ComfyUI
 
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
+**Q: 生成失败/返回错误**
+A: 检查 `status` 输出的详细错误信息，常见原因：
+- 账户余额不足
+- 提示词触发安全策略 (调整 `safety_tolerance`)
+- 网络连接问题
+- API密钥无效
+
+### 生成质量
+
+**Q: 图生图效果不理想**
+A: 尝试调整以下参数：
+- `guidance_scale`: 较低值更偏向原图，较高值更偏向提示词
+- `num_inference_steps`: 增加步数可能提升细节
+- `prompt_upsampling`: 启用提示词增强
+
+**Q: 生成速度慢**
+A: 优化建议：
+- 使用 `flux-kontext-pro` 而非 `flux-kontext-max`
+- 减少 `num_inference_steps`
+- 批量生成时充分利用并发能力
 
 ## 🛠️ 开发信息
 
@@ -88,38 +149,58 @@
 ```
 ComfyUI-TuZi-Flux-Kontext/
 ├── __init__.py          # 节点注册入口
-├── nodes.py             # 节点实现
-├── api_client.py        # API客户端
-├── utils.py             # 工具函数
-├── config.py            # 配置管理
+├── nodes.py             # 节点实现 (支持并发生成)
+├── api_client.py        # API客户端 (包含重试逻辑)
+├── utils.py             # 工具函数 (图像处理等)
+├── config.py            # 配置管理 (API密钥等)
 ├── requirements.txt     # 依赖列表
+├── test_api.py          # 完整测试脚本
+├── quick_test.py        # 快速测试脚本
 └── README.md           # 说明文档
 ```
 
 ### 依赖项
-- `requests>=2.25.0` - HTTP请求
-- `pillow>=8.0.0` - 图像处理
-- `numpy>=1.19.0` - 数值计算
-- `torch>=1.9.0` - PyTorch
-- `torchvision>=0.10.0` - 图像处理工具
+- `torch` - PyTorch深度学习框架
+- `torchvision` - 图像处理工具
+- `requests` - HTTP请求库
+- `numpy` - 数值计算库
+- `pillow` - 图像处理库
+- `python-dotenv` - 环境变量管理
+
+```
+
+## 📄 许可证
+
+本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
 
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
+### 开发指南
+
+1. Fork 本项目
+2. 创建功能分支
+3. 提交代码更改
+4. 运行测试确保功能正常
+5. 提交 Pull Request
+
 ## 📞 支持
 
-- 📧 邮箱：support@example.com
-- 💬 QQ群：123456789
 - 🌐 官网：[tu-zi.com](https://tu-zi.com)
+- 📖 API文档：[wiki.tu-zi.com](https://wiki.tu-zi.com/zh/Code/Flux-Kontext)
 
 ## 🔄 更新日志
 
 ### v1.0.0 (2024-01-XX)
 - ✨ 初始版本发布
-- 🎨 支持基础图像生成功能
-- 🔧 支持高级参数配置
-- 📱 完善的错误处理机制
+- 🎨 支持 Flux-Kontext-Pro 和 Flux-Kontext-Max 模型
+- 🔥 支持批量生成 (1/2/4张)
+- ⚡ 实现并发生成提升速度
+- 🛡️ 完善的错误处理和重试机制
+- 🔧 支持全参数控制
+- 📱 智能种子管理
+- 🔑 安全的API密钥配置
 
 ---
 
