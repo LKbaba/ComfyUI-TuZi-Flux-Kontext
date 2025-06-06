@@ -7,6 +7,19 @@ import os
 from typing import Optional, Dict, Any
 from pathlib import Path
 
+# 尝试导入dotenv，如果失败则优雅降级
+try:
+    from dotenv import load_dotenv
+    # 获取当前插件的根目录，并加载该目录下的.env文件
+    module_dir = Path(__file__).parent
+    dotenv_path = module_dir / '.env'
+    if dotenv_path.is_file():
+        load_dotenv(dotenv_path=dotenv_path)
+        print(f"成功从 {dotenv_path} 加载 .env 文件。")
+except ImportError:
+    print("未找到 python-dotenv 库，将仅从环境变量读取配置。建议安装: pip install python-dotenv")
+    load_dotenv = None
+
 class FluxKontextConfig:
     """Flux-Kontext配置管理类"""
     
@@ -30,50 +43,40 @@ class FluxKontextConfig:
     # 支持的输出格式
     SUPPORTED_OUTPUT_FORMATS = ["jpeg", "png"]
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self):
         """
-        初始化配置
-        
-        Args:
-            api_key: API密钥，如果不提供则从环境变量读取
+        初始化配置。API密钥将通过get_api_key()方法动态获取。
         """
-        self.api_key = api_key or self._get_api_key_from_env()
         self.config = self.DEFAULT_CONFIG.copy()
-    
-    def _get_api_key_from_env(self) -> Optional[str]:
-        """从环境变量或.env文件获取API密钥"""
-        # 首先尝试从环境变量获取
-        api_key = os.getenv("FLUX_KONTEXT_API_KEY") or os.getenv("TUZI_API_KEY")
+        self.api_key_error_message = self._create_api_key_error_message()
+
+    def _create_api_key_error_message(self) -> str:
+        """创建当API密钥未找到时的详细错误消息"""
+        module_dir = Path(__file__).parent.resolve()
         
-        if api_key:
-            return api_key
-        
-        # 如果环境变量中没有，尝试从.env文件读取
-        env_file = Path(".env")
-        if env_file.exists():
-            try:
-                with open(env_file, 'r', encoding='utf-8') as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith('#'):
-                            if '=' in line:
-                                key, value = line.split('=', 1)
-                                key = key.strip()
-                                value = value.strip()
-                                if key in ["FLUX_KONTEXT_API_KEY", "TUZI_API_KEY"]:
-                                    return value
-            except Exception as e:
-                print(f"读取.env文件失败: {e}")
-        
-        return None
-    
+        return (
+            "❌ 未找到API密钥！\n\n"
+            "请按以下两种方式之一设置您的兔子AI API密钥：\n\n"
+            "方法一 (推荐): 创建 .env 文件\n"
+            f"1. 在本插件的根目录中创建一个名为 .env 的文件。\n"
+            f"   插件目录: {module_dir}\n"
+            "2. 在文件中添加以下内容 (将your-api-key替换为您的真实密钥):\n"
+            "   TUZI_API_KEY=your-api-key-here\n\n"
+            "方法二: 设置环境变量\n"
+            "1. 设置一个名为 TUZI_API_KEY 的系统环境变量，值为您的密钥。\n\n"
+            "密钥获取地址: https://tu-zi.com"
+        )
+
     def get_api_key(self) -> Optional[str]:
-        """获取API密钥"""
-        return self.api_key
-    
-    def set_api_key(self, api_key: str):
-        """设置API密钥"""
-        self.api_key = api_key
+        """
+        从环境变量或.env文件获取API密钥。
+        如果找到，返回密钥字符串。
+        如果未找到，返回None。
+        """
+        api_key = os.getenv("TUZI_API_KEY")
+        if api_key and api_key.strip():
+            return api_key.strip()
+        return None
     
     def get_config(self, key: str, default: Any = None) -> Any:
         """获取配置项"""
@@ -98,10 +101,6 @@ class FluxKontextConfig:
     def validate_safety_tolerance(self, safety_tolerance: int) -> bool:
         """验证安全容忍度是否在有效范围内"""
         return 0 <= safety_tolerance <= 6
-    
-    def is_api_key_valid(self) -> bool:
-        """检查API密钥是否有效（非空）"""
-        return bool(self.api_key and self.api_key.strip())
 
 # 全局配置实例
 default_config = FluxKontextConfig() 

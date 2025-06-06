@@ -1,150 +1,86 @@
 # ComfyUI-TuZi-Flux-Kontext
 
-🐰 **Flux-Kontext Pro** 的 ComfyUI 自定义节点，支持基于文本提示和参考图像生成高质量图像。
+🐰 **Flux-Kontext Pro** 的 ComfyUI 自定义节点，使用官方标准API，支持文生图和图生图。
 
 ## ✨ 特性
 
-- 🎨 **高质量图像生成** - 基于 Flux-Kontext-Pro 模型
-- 🖼️ **多图参考支持** - 支持在提示词中包含图片URL
-- ⚙️ **丰富的参数控制** - 宽高比、输出格式、安全容忍度等
-- 🔧 **两种节点模式** - 基础版和高级版
-- 🌐 **完善的错误处理** - 用户友好的错误提示
-- 📱 **响应式设计** - 适配不同的使用场景
+- 🎨 **高质量图像生成** - 基于 Flux-Kontext-Pro 模型，支持文生图和图生图。
+- ⚙️ **丰富的参数控制** - 支持调整指导强度(Guidance)、推理步数(Steps)、宽高比、种子等核心参数。
+- 🔑 **专业的密钥管理** - 通过 `.env` 文件或环境变量配置API密钥，安全且方便。
+- 🛡️ **健壮的错误处理** - 在API密钥未配置时提供清晰的中文指引，并在节点执行失败时尽量维持工作流不中断。
+- 🔧 **统一的全功能节点** - 将所有功能集成于一个节点，简洁易用。
 
 ## 📦 安装
 
-### 方法一：Git 克隆（推荐）
+1.  打开您的ComfyUI安装目录。
+2.  进入 `custom_nodes` 文件夹。
+3.  通过 `git` 克隆本项目:
+    ```bash
+    cd ComfyUI/custom_nodes/
+    git clone https://github.com/your-username/ComfyUI-TuZi-Flux-Kontext.git
+    ```
+4.  安装依赖:
+    ```bash
+    cd ComfyUI-TuZi-Flux-Kontext
+    pip install -r requirements.txt
+    ```
+5.  重启ComfyUI。
 
-```bash
-cd ComfyUI/custom_nodes/
-git clone https://github.com/your-username/ComfyUI-TuZi-Flux-Kontext.git
-cd ComfyUI-TuZi-Flux-Kontext
-pip install -r requirements.txt
-```
+## 🔑 API 密钥设置
 
-### 方法二：手动下载
+为了使用本节点，您需要配置您的兔子AI API密钥。我们推荐使用 `.env` 文件的方式。
 
-1. 下载本项目的 ZIP 文件
-2. 解压到 `ComfyUI/custom_nodes/` 目录
-3. 安装依赖：`pip install -r requirements.txt`
+1.  **获取密钥**: 访问 [兔子AI官网](https://tu-zi.com) 并登录，在控制台获取您的 API 密钥。
 
-## 🔑 API 密钥获取
+2.  **配置密钥**:
+    -   在 `ComfyUI/custom_nodes/ComfyUI-TuZi-Flux-Kontext/` 目录下，创建一个名为 `.env` 的文件。
+    -   在该文件中，添加以下内容，并将 `your-api-key-here` 替换为您真实的密钥:
+        ```
+        TUZI_API_KEY=your-api-key-here
+        ```
+    -   保存文件并重启ComfyUI。
 
-1. 访问 [兔子AI官网](https://tu-zi.com)
-2. 注册账号并登录
-3. 在控制台获取 API 密钥（default分组）
-4. 在节点中输入您的 API 密钥
+*或者，您也可以通过设置名为 `TUZI_API_KEY` 的系统环境变量来配置密钥。*
 
-### 环境变量配置（可选）
-
-您也可以通过环境变量设置 API 密钥：
-
-```bash
-# Windows
-set FLUX_KONTEXT_API_KEY=your-api-key-here
-
-# Linux/Mac
-export FLUX_KONTEXT_API_KEY=your-api-key-here
-```
+如果未正确配置密钥，节点将显示红色的错误信息，并提供详细的中文设置指引。
 
 ## 🚀 使用方法
 
-### 基础节点：🐰 Flux-Kontext 图像生成
+在ComfyUI中，添加 `🐰 Flux Kontext API` 节点 (位于 `TuZi/Flux-Kontext` 分类下)。
 
-最简单的使用方式，包含核心功能：
+### 输入参数
 
-**必填参数：**
-- `prompt` - 图像描述提示词
-- `api_key` - 您的 API 密钥
+-   **`prompt`**: 图像的文本描述。
+-   **`image` (可选)**: 连接一个图像输入，即可启用**图生图**模式。
+-   **`seed`**: 随机种子。
+-   **`control_after_generate`**: 控制种子在每次生成后是否变化 (固定/递增/随机)。
+-   **`guidance_scale`**: 指导强度。数值越高，图像与提示词的关联性越强。
+-   **`num_inference_steps`**: 推理步数。步数越多，细节可能越丰富，但生成时间也越长。
+-   **`aspect_ratio`**: 预设的图像宽高比。
+-   **`output_format`**: 输出图像的格式 (jpeg/png)。
+-   **`safety_tolerance`**: 内容安全容忍度 (0-6)。
+-   **`prompt_upsampling`**: 是否启用提示词增强。
+-   **`webhook_url` (可选)**: 用于接收生成结果的Webhook URL。
+-   **`webhook_secret` (可选)**: Webhook的签名密钥。
 
-**可选参数：**
-- `seed` - 随机种子（-1为随机）
-- `aspect_ratio` - 宽高比选择
-- `output_format` - 输出格式（jpeg/png）
-- `safety_tolerance` - 安全容忍度（0-6）
-- `prompt_upsampling` - 提示词增强
+### 输出
 
-### 高级节点：🐰 Flux-Kontext 高级生成
-
-支持更多高级功能：
-
-**额外参数：**
-- `webhook_url` - Webhook 通知 URL
-- `webhook_secret` - Webhook 签名密钥
-- `response_data` - 完整的 API 响应数据
-
-### 提示词格式
-
-#### 纯文本提示
-```
-一只可爱的橘猫坐在阳光下
-```
-
-#### 包含参考图像
-```
-https://example.com/image.jpg 让这个女人带上墨镜，衣服换个颜色
-```
-
-#### 多图参考
-```
-https://example.com/image1.jpg https://example.com/image2.jpg 请将P2中的女孩替换为P1中的女孩
-```
-
-## 📋 支持的参数
-
-### 宽高比选项
-- `1:1` - 正方形
-- `16:9` - 宽屏
-- `9:16` - 手机竖屏
-- `4:3` - 标准屏幕
-- `3:4` - 竖屏
-- `21:9` - 超宽屏
-- `9:21` - 超长竖屏
-
-### 输出格式
-- `jpeg` - JPEG 格式（默认）
-- `png` - PNG 格式
-
-### 安全容忍度
-- `0-2` - 严格模式，适合商业用途
-- `3-4` - 平衡模式，适合一般用途
-- `5-6` - 宽松模式，创意内容
-
-## 🔧 工作流示例
-
-### 基础工作流
-1. 添加 `🐰 Flux-Kontext 图像生成` 节点
-2. 输入提示词和 API 密钥
-3. 调整参数（可选）
-4. 连接到 `Preview Image` 节点查看结果
-
-### 高级工作流
-1. 使用 `🐰 Flux-Kontext 高级生成` 节点
-2. 配置 Webhook 参数（如需要）
-3. 连接 `response_data` 输出到文本显示节点查看详细信息
+-   **`image`**: 生成的图像，可连接到 `Preview Image` 等节点。
+-   **`image_url`**: 生成图像的URL地址。
+-   **`status`**: 显示生成状态，成功或失败的详细信息。
 
 ## ❗ 常见问题
 
-### Q: 提示 "API密钥无效或已过期"
-A: 请检查：
-- API 密钥是否正确输入
-- 账户余额是否充足
-- 网络连接是否正常
+-   **节点变红并提示未找到API密钥**:
+    请严格按照上方的 **API 密钥设置** 步骤操作，确保 `.env` 文件位置正确、内容格式无误，并重启ComfyUI。
+-   **生成失败/返回错误**:
+    请检查 `status` 输出的错误信息。常见原因包括：账户余额不足、提示词触发安全策略、网络问题等。
+-   **图生图效果不佳**:
+    尝试调整 `guidance_scale` 参数。较低的值会给予输入图像更多权重，较高的值会更偏向于文本提示。
 
-### Q: 图像下载失败
-A: 可能原因：
-- 网络连接问题
-- 图像URL已过期
-- 防火墙阻止了下载
+## 📄 许可证
 
-### Q: 生成的图像是黑色的
-A: 这通常表示出现了错误，请查看状态信息了解具体原因。
-
-### Q: 如何使用多图参考？
-A: 在提示词开头放置多个图片URL，用空格分隔：
-```
-https://image1.jpg https://image2.jpg 描述文字
-```
+本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
 
 ## 🛠️ 开发信息
 
@@ -166,10 +102,6 @@ ComfyUI-TuZi-Flux-Kontext/
 - `numpy>=1.19.0` - 数值计算
 - `torch>=1.9.0` - PyTorch
 - `torchvision>=0.10.0` - 图像处理工具
-
-## 📄 许可证
-
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
 
 ## 🤝 贡献
 

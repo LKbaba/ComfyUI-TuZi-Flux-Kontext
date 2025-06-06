@@ -83,45 +83,30 @@ def tensor_to_pil(tensor: torch.Tensor) -> Image.Image:
     
     return image
 
-def validate_url(url: str) -> bool:
+def tensor_to_base64(tensor: torch.Tensor, image_format: str = "png") -> str:
     """
-    验证URL是否有效
+    将ComfyUI图像张量转换为Base64编码的字符串
     
     Args:
-        url: 要验证的URL
+        tensor: ComfyUI图像张量
+        image_format: 图像格式 ('png' or 'jpeg')
         
     Returns:
-        bool: URL是否有效
+        str: Base64编码的字符串
     """
-    try:
-        result = urlparse(url)
-        return all([result.scheme, result.netloc])
-    except:
-        return False
-
-def parse_image_urls(prompt: str) -> Tuple[List[str], str]:
-    """
-    从提示词中解析图像URL
+    import base64
     
-    Args:
-        prompt: 包含URL的提示词
+    pil_image = tensor_to_pil(tensor)
+    buffered = io.BytesIO()
+    
+    # 根据指定的格式保存
+    if image_format.lower() == 'jpeg':
+        pil_image.save(buffered, format="JPEG")
+    else:
+        pil_image.save(buffered, format="PNG")
         
-    Returns:
-        Tuple[List[str], str]: (URL列表, 清理后的提示词)
-    """
-    # 匹配HTTP/HTTPS URL的正则表达式
-    url_pattern = r'https?://[^\s]+'
-    
-    # 找到所有URL
-    urls = re.findall(url_pattern, prompt)
-    
-    # 从提示词中移除URL
-    clean_prompt = re.sub(url_pattern, '', prompt).strip()
-    
-    # 清理多余的空格
-    clean_prompt = re.sub(r'\s+', ' ', clean_prompt)
-    
-    return urls, clean_prompt
+    base64_string = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return base64_string
 
 def validate_aspect_ratio(aspect_ratio: str) -> bool:
     """

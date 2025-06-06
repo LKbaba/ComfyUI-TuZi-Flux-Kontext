@@ -10,10 +10,10 @@ import re
 from typing import Optional, Dict, Any, List
 try:
     from .config import FluxKontextConfig, default_config
-    from .utils import format_error_message
+    from .utils import format_error_message, download_image
 except ImportError:
     from config import FluxKontextConfig, default_config
-    from utils import format_error_message
+    from utils import format_error_message, download_image
 
 class FluxKontextAPIError(Exception):
     """API调用异常"""
@@ -22,7 +22,7 @@ class FluxKontextAPIError(Exception):
 class FluxKontextAPI:
     """Flux-Kontext API客户端类"""
     
-    def __init__(self, api_key: Optional[str] = None, config: Optional[FluxKontextConfig] = None):
+    def __init__(self, api_key: str, config: Optional[FluxKontextConfig] = None):
         """
         初始化API客户端
         
@@ -30,10 +30,11 @@ class FluxKontextAPI:
             api_key: API密钥
             config: 配置对象
         """
+        if not api_key or not api_key.strip():
+            raise FluxKontextAPIError("API密钥在初始化时不能为空")
+            
+        self.api_key = api_key
         self.config = config or default_config
-        if api_key:
-            self.config.set_api_key(api_key)
-        
         self.session = requests.Session()
         self._setup_session()
     
@@ -44,10 +45,8 @@ class FluxKontextAPI:
             'User-Agent': 'ComfyUI-TuZi-Flux-Kontext/1.0'
         })
         
-        # 设置API密钥
-        api_key = self.config.get_api_key()
-        if api_key:
-            self.session.headers['Authorization'] = f'Bearer {api_key}'
+        # 直接使用传入的API密钥设置认证头
+        self.session.headers['Authorization'] = f'Bearer {self.api_key}'
     
     def _make_request(self, method: str, endpoint: str, data: Optional[Dict] = None, 
                      timeout: Optional[int] = None) -> Dict[str, Any]:
@@ -123,11 +122,14 @@ class FluxKontextAPI:
     
     def generate_image(self, 
                       prompt: str,
+                      input_image: Optional[str] = None,
                       seed: Optional[int] = None,
                       aspect_ratio: Optional[str] = None,
                       output_format: Optional[str] = None,
                       safety_tolerance: Optional[int] = None,
                       prompt_upsampling: Optional[bool] = None,
+                      guidance_scale: Optional[float] = None,
+                      num_inference_steps: Optional[int] = None,
                       webhook_url: Optional[str] = None,
                       webhook_secret: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -135,11 +137,14 @@ class FluxKontextAPI:
         
         Args:
             prompt: 文本提示
+            input_image: Base64编码的输入图像
             seed: 随机种子
             aspect_ratio: 宽高比
             output_format: 输出格式
             safety_tolerance: 安全容忍度
             prompt_upsampling: 提示上采样
+            guidance_scale: 指导强度
+            num_inference_steps: 推理步数
             webhook_url: Webhook URL
             webhook_secret: Webhook密钥
             
@@ -149,106 +154,65 @@ class FluxKontextAPI:
         Raises:
             FluxKontextAPIError: API调用失败
         """
-        # 验证API密钥
-        if not self.config.is_api_key_valid():
-            raise FluxKontextAPIError("API密钥未设置或无效")
-        
         # 构建请求数据
         payload = {
             "model": self.config.get_config('model'),
             "prompt": prompt
         }
         
-        # 添加可选参数
-        if seed is not None:
-            payload["seed"] = seed
-        
-        if aspect_ratio is not None:
-            if not self.config.validate_aspect_ratio(aspect_ratio):
-                raise FluxKontextAPIError(f"不支持的宽高比: {aspect_ratio}")
-            payload["aspect_ratio"] = aspect_ratio
-        
-        if output_format is not None:
-            if not self.config.validate_output_format(output_format):
-                raise FluxKontextAPIError(f"不支持的输出格式: {output_format}")
-            payload["output_format"] = output_format
-        
-        if safety_tolerance is not None:
-            if not self.config.validate_safety_tolerance(safety_tolerance):
-                raise FluxKontextAPIError("安全容忍度必须在0-6之间")
-            payload["safety_tolerance"] = safety_tolerance
-        
-        if prompt_upsampling is not None:
-            payload["prompt_upsampling"] = prompt_upsampling
-        
-        if webhook_url is not None:
-            payload["webhook_url"] = webhook_url
-        
-        if webhook_secret is not None:
-            payload["webhook_secret"] = webhook_secret
-        
+        # 动态添加所有非空的可选参数
+        # 这种方式更简洁且易于维护
+        optional_params = {
+            "input_image": input_image,
+            "seed": seed,
+            "aspect_ratio": aspect_ratio,
+            "output_format": output_format,
+            "safety_tolerance": safety_tolerance,
+            "prompt_upsampling": prompt_upsampling,
+            "guidance_scale": guidance_scale,
+            "num_inference_steps": num_inference_steps,
+            "webhook_url": webhook_url,
+            "webhook_secret": webhook_secret,
+        }
+
+        for key, value in optional_params.items():
+            # 只有当值不是None，或者对于字符串，不是空字符串时，才添加到payload
+            if value is not None and value != '':
+                payload[key] = value
+
         # 发送请求
         try:
-            response = self._make_request('POST', '/v1/images/generations', payload)
-            return response
+            response = self._make_request('POST', '/v1/images/generations', data=payload)
         except Exception as e:
+            # 确保将所有底层异常统一包装成我们的自定义异常
+            if isinstance(e, FluxKontextAPIError):
+                raise e
             raise FluxKontextAPIError(format_error_message(e, "图像生成"))
-    
-    def generate_image_chat(self, messages: List[Dict[str, str]]) -> str:
-        """
-        生成图像（Chat格式API）
-        这个端点返回的不是标准JSON，而是一个包含Markdown图片链接的文本。
-        
-        Args:
-            messages: 消息列表
-            
-        Returns:
-            str: 提取到的图片URL，如果失败则返回错误信息
-            
-        Raises:
-            FluxKontextAPIError: API调用失败
-        """
-        # 验证API密钥
-        if not self.config.is_api_key_valid():
-            raise FluxKontextAPIError("API密钥未设置或无效")
-        
-        payload = {
-            "model": self.config.get_config('model'),
-            "messages": messages,
-            "stream": False  # 使用非流式获取完整响应
-        }
-        
-        url = f"{self.config.get_config('api_base_url')}/v1/chat/completions"
-        timeout = self.config.get_config('timeout', 300)
-        
-        try:
-            response = self.session.post(url, json=payload, timeout=timeout)
-            
-            if response.status_code != 200:
-                raise FluxKontextAPIError(f"Chat API请求失败: {response.status_code} - {response.text}")
-            
-            # 直接获取响应文本
-            response_text = response.text
-            
-            # 使用正则表达式从Markdown链接中提取URL
-            # ![...](URL)
-            match = re.search(r'!\[.*?\]\((https?://[^\)]+)\)', response_text)
-            
-            if match:
-                image_url = match.group(1)
-                return image_url
-            else:
-                # 如果正则匹配失败，尝试寻找第一个http链接作为备用方案
-                match_http = re.search(r'https?://[^\s"`<]+', response_text)
-                if match_http:
-                    return match_http.group(0)
 
-                raise FluxKontextAPIError("在Chat API响应中未找到图片URL")
+        # 检查响应结构，提取图像URL或错误信息
+        # 这一步是关键，确保我们能处理API的正常响应和各种错误情况
+        if 'data' in response and isinstance(response['data'], list) and len(response['data']) > 0 and 'url' in response['data'][0]:
+            image_url = response['data'][0]['url']
+            if not isinstance(image_url, str) or not image_url.startswith('http'):
+                 raise FluxKontextAPIError(f"API返回了无效的图片URL格式: {str(image_url)[:100]}")
+            
+            try:
+                # 下载图像
+                print(f"⬇️ 正在从 {image_url} 下载图像...")
+                pil_image = download_image(image_url, timeout=self.config.get_config('timeout'))
+                if pil_image is None:
+                    raise FluxKontextAPIError(f"成功获取URL但下载图片失败: {image_url}")
                 
-        except requests.exceptions.RequestException as e:
-            raise FluxKontextAPIError(f"Chat API网络请求失败: {str(e)}")
-        except Exception as e:
-            raise FluxKontextAPIError(format_error_message(e, "Chat图像生成"))
+                print("✅ 图像下载并处理成功")
+                # 直接返回PIL图像和URL，这是与之前最大的不同
+                return pil_image, image_url
+
+            except Exception as e:
+                raise FluxKontextAPIError(f"下载或处理图像时出错: {str(e)}")
+        else:
+            # 如果响应中没有预期的图像数据，则尝试解析并抛出详细的错误信息
+            error_message = response.get("error", {}).get("message", "API返回未知格式的响应")
+            raise FluxKontextAPIError(f"API错误: {error_message} | 原始响应: {str(response)[:200]}")
     
     def test_connection(self) -> bool:
         """
