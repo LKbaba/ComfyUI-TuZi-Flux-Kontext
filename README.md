@@ -8,6 +8,32 @@
 
 ComfyUI-TuZi-Flux-Kontext 是一个专业的 ComfyUI 扩展，提供完整的 Flux Kontext Pro/Max 图像生成功能。经过深度优化，为用户提供最简洁的配置体验和最强大的功能支持。
 
+## 📸 功能演示
+
+### 🎨 文生图模式
+
+使用 **🐰Flux.1 Kontext - Text to Image** 节点，纯文本生成高质量图像：
+
+![文生图演示](images/text-to-image-demo.png)
+
+*生成效果：基于文字描述创建的老虎眼睛特写，细节丰富，质感逼真*
+
+### 🖼️ 单图编辑模式
+
+使用 **🐰Flux.1 Kontext - Editing** 节点，基于输入图像进行智能编辑：
+
+![单图编辑演示](images/single-image-editing-demo.png)
+
+*生成效果：基于提示词"坐在沙发上的角色和达尔马提亚犬"，同时生成4张不同变化的图像*
+
+### 🎭 多图融合模式
+
+使用 **🐰Flux.1 Kontext - Editing (Multi Image)** 节点，融合多个参考图像：
+
+![多图融合演示](images/multi-image-editing-demo.png)
+
+*复杂工作流：使用多个参考图像（人物+小狗）进行智能融合，创造出和谐统一的场景*
+
 ### ✨ 核心特性
 
 - 🎨 **三种生成模式** - 文生图、单图编辑、多图编辑，满足所有创作需求
