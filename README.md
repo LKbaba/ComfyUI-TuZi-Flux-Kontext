@@ -283,14 +283,14 @@ TUZI_API_KEY=your_tuzi_api_key_here
 
 - **项目文档**: GitHub 仓库
 - **问题反馈**: GitHub Issues
-- **兔子AI官网**: [tu-zi.com](https://tu-zi.com)
+- **兔子AI官网**: [tu-zi.com](https://api.tu-zi.com)
 - **API文档**: [wiki.tu-zi.com](https://wiki.tu-zi.com/zh/Code/Flux-Kontext)
 
 ---
 
 ## 🔗 相关链接
 
-- **兔子AI官网**: [tu-zi.com](https://tu-zi.com)
+- **兔子AI官网**: [tu-zi.com](https://api.tu-zi.com)
 - **ComfyUI**: [github.com/comfyanonymous/ComfyUI](https://github.com/comfyanonymous/ComfyUI)
 - **Flux模型**: [Black Forest Labs](https://blackforestlabs.ai/)
 
