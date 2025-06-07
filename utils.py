@@ -36,6 +36,27 @@ def download_image(url: str, timeout: int = 30) -> Optional[Image.Image]:
         print(f"下载图像失败: {url}, 错误: {str(e)}")
         return None
 
+def tensor_to_pil(tensor: torch.Tensor) -> List[Image.Image]:
+    """将torch张量（B, H, W, C）转换为PIL图像列表，使其更健壮"""
+    if not isinstance(tensor, torch.Tensor):
+        return []
+    
+    images = []
+    for i in range(tensor.shape[0]):
+        # [H, W, C]
+        img_tensor = tensor[i]
+        
+        # 确保值在[0, 1]范围内
+        img_tensor = torch.clamp(img_tensor, 0, 1)
+        
+        # 转换为numpy数组并缩放到[0, 255]
+        img_np = (img_tensor.cpu().numpy() * 255).astype(np.uint8)
+        
+        # 创建PIL图像
+        images.append(Image.fromarray(img_np, 'RGB'))
+        
+    return images
+
 def pil_to_tensor(pil_images: Union[Image.Image, List[Image.Image]]) -> torch.Tensor:
     """
     将单个PIL图像或PIL图像列表转换为ComfyUI图像张量
@@ -58,31 +79,6 @@ def pil_to_tensor(pil_images: Union[Image.Image, List[Image.Image]]) -> torch.Te
         return torch.empty((0, 1, 1, 3), dtype=torch.float32)
         
     return torch.cat(tensors, dim=0)
-
-def tensor_to_pil(tensor: torch.Tensor) -> Image.Image:
-    """
-    将ComfyUI图像张量转换为PIL图像
-    
-    Args:
-        tensor: 形状为 [1, H, W, 3] 或 [H, W, 3] 的张量
-        
-    Returns:
-        PIL.Image对象
-    """
-    # 如果是4维张量，取第一个
-    if tensor.dim() == 4:
-        tensor = tensor.squeeze(0)
-    
-    # 确保值在[0, 1]范围内
-    tensor = torch.clamp(tensor, 0, 1)
-    
-    # 转换为numpy数组并缩放到[0, 255]
-    image_array = (tensor.cpu().numpy() * 255).astype(np.uint8)
-    
-    # 创建PIL图像
-    image = Image.fromarray(image_array, 'RGB')
-    
-    return image
 
 def tensor_to_base64(tensor: torch.Tensor, image_format: str = "png") -> str:
     """

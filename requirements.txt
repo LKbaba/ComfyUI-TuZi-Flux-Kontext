@@ -1,6 +1,5 @@
-torch
-torchvision
 requests
-numpy
-pillow
-python-dotenv 
+python-dotenv
+fal-client
+httpx
+httpcore 

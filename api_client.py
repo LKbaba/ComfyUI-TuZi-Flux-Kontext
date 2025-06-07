@@ -123,7 +123,6 @@ class FluxKontextAPI:
     def generate_image(self, 
                       prompt: str,
                       model: str = "flux-kontext-pro",
-                      input_image: Optional[str] = None,
                       seed: Optional[int] = None,
                       aspect_ratio: Optional[str] = None,
                       output_format: Optional[str] = None,
@@ -139,7 +138,6 @@ class FluxKontextAPI:
         Args:
             prompt: 文本提示
             model: 模型名称
-            input_image: Base64编码的输入图像
             seed: 随机种子
             aspect_ratio: 宽高比
             output_format: 输出格式
@@ -165,7 +163,6 @@ class FluxKontextAPI:
         # 动态添加所有非空的可选参数
         # 这种方式更简洁且易于维护
         optional_params = {
-            "input_image": input_image,
             "seed": seed,
             "aspect_ratio": aspect_ratio,
             "output_format": output_format,
