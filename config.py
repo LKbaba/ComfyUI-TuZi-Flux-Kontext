@@ -83,7 +83,7 @@ class FluxKontextConfig:
     def get_fal_key(self) -> Optional[str]:
         """获取内置的FAL_KEY（用户无需配置）"""
         # 这个key没有多少钱，仅用于上传图片回去url，不要乱用请珍惜。
-        return "7ae94147-85d8-47fe-8045-61ca16a66b0e:4b5c907a719fbffd4e64cf5df49a0f3f"
+        return "34741d7c-2c29-4244-9870-841786dfb6a1:61b071fc0d68e035b0c42e24cbebdec0"
     
     def get_config(self, key: str, default: Any = None) -> Any:
         """获取配置项"""
