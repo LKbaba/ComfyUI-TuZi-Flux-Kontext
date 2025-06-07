@@ -63,6 +63,8 @@ ComfyUI-TuZi-Flux-Kontext 是一个专业的 ComfyUI 扩展，提供完整的 Fl
 
 ### 方法二：手动安装
 
+#### 方式A：通过 Git 克隆（推荐）
+
 ```bash
 # 进入 ComfyUI 的 custom_nodes 目录
 cd ComfyUI/custom_nodes/
@@ -75,12 +77,36 @@ cd ComfyUI-TuZi-Flux-Kontext
 pip install -r requirements.txt
 ```
 
+#### 方式B：下载 ZIP 文件
+
+1. 访问 [项目页面](https://github.com/LKbaba/ComfyUI-TuZi-Flux-Kontext)
+2. 点击绿色 **"Code"** 按钮 → **"Download ZIP"**
+3. 解压到 `ComfyUI/custom_nodes/` 目录
+4. **重要**: 将解压后的文件夹从 `ComfyUI-TuZi-Flux-Kontext-main` 重命名为 `ComfyUI-TuZi-Flux-Kontext`
+
+```bash
+# 安装依赖
+cd ComfyUI/custom_nodes/ComfyUI-TuZi-Flux-Kontext
+pip install -r requirements.txt
+```
+
 ### 便携版用户特别说明
 
 便携版用户需要使用ComfyUI自带的Python环境安装依赖：
 
+**Git 克隆方式：**
 ```powershell
 # 在 ComfyUI 根目录执行 例如：PS E:\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable>
+.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext\requirements.txt
+```
+
+**ZIP 下载方式：**
+```powershell
+# ⚠️ 注意：如果是下载ZIP解压，文件夹名称为 ComfyUI-TuZi-Flux-Kontext-main
+# 请先重命名文件夹，或使用以下命令：
+.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext-main\requirements.txt
+
+# 重命名后推荐使用：
 .\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext\requirements.txt
 ```
 
