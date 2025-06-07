@@ -6,10 +6,10 @@ __pycache__/
 *.pyd
 .Python
 
-# 环境和配置文件
-.env
+# 环境和配置文件 (保护真实配置，但包含模板)
 .env.local
 .env.*.local
+# 注意：.env 模板文件需要被包含在仓库中，但用户的真实配置应该被保护
 
 # 测试和输出
 test_outputs/

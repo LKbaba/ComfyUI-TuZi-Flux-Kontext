@@ -70,7 +70,10 @@ pip install -r requirements.txt
 
 ### 配置方法
 
-在插件目录中创建 `.env` 文件，添加您的 API 密钥：
+插件已经包含了 `.env` 配置模板文件，您只需要：
+
+1. **打开配置文件**: `ComfyUI/custom_nodes/ComfyUI-TuZi-Flux-Kontext/.env`
+2. **替换 API 密钥**: 将 `your_tuzi_api_key_here` 替换为您的真实密钥
 
 ```env
 TUZI_API_KEY=your_tuzi_api_key_here
