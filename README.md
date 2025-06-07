@@ -95,12 +95,14 @@ pip install -r requirements.txt
 便携版用户需要使用ComfyUI自带的Python环境安装依赖：
 
 **Git 克隆方式：**
+
 ```powershell
 # 在 ComfyUI 根目录执行 例如：PS E:\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable>
  .\python_embeded\python.exe -m pip install --force-reinstall -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext\requirements.txt
 ```
 
 **ZIP 下载方式：**
+
 ```powershell
 # ⚠️ 注意：如果是下载ZIP解压，文件夹名称为 ComfyUI-TuZi-Flux-Kontext-main
 # 请先重命名文件夹，或使用以下命令：
@@ -125,7 +127,7 @@ pip install -r requirements.txt
 插件已经包含了 `.env` 配置模板文件，您只需要：
 
 1. **打开配置文件**: `ComfyUI/custom_nodes/ComfyUI-TuZi-Flux-Kontext/.env`
-2. **替换 API 密钥**: 将 `your_tuzi_api_key_here` 替换为您的真实密钥
+2. **替换 API 密钥**: 将 `sk-xxxxx` 替换为您的真实密钥
 
 ```env
 TUZI_API_KEY=your_tuzi_api_key_here
@@ -178,8 +180,12 @@ TUZI_API_KEY=your_tuzi_api_key_here
 
 - **prompt** (文本提示词): 描述您想要生成的图像
 - **model**: 选择生成模型
-  - `flux-kontext-pro`: 标准版本，速度快
-  - `flux-kontext-max`: 增强版本，质量更高
+  - `flux-kontext-pro`:
+    2025年6月3日
+    一个统一的模型，提供本地编辑、生成性修改和 FLUX.1 质量的文本到图像生成。处理文本和图像输入，以实现精确的区域编辑或全场景转换，速度突破，开创了在多次编辑中保持角色一致性的迭代工作流程。
+  - `flux-kontext-max`:
+    2025年6月3日
+    我们的新高级模型在各个方面都带来了最大性能——显著改善的提示遵循和排版生成实现了高端的一致性，使编辑在速度上没有妥协。
 - **num_images**: 生成数量 (1/2/4 张)
 - **seed**: 随机种子 (0=随机，其他=固定)
 
