@@ -32,7 +32,7 @@ ComfyUI-TuZi-Flux-Kontext 是一个专业的 ComfyUI 扩展，提供完整的 Fl
 
 1. 在 ComfyUI 界面中打开 **ComfyUI Manager**
 2. 点击 **"Install via Git URL"**
-3. 输入：`https://github.com/your-username/ComfyUI-TuZi-Flux-Kontext.git`
+3. 输入：`https://github.com/LKbaba/ComfyUI-TuZi-Flux-Kontext.git`
 4. 安装完成后重启 ComfyUI
 
 ### 方法二：手动安装
@@ -42,7 +42,7 @@ ComfyUI-TuZi-Flux-Kontext 是一个专业的 ComfyUI 扩展，提供完整的 Fl
 cd ComfyUI/custom_nodes/
 
 # 克隆项目
-git clone https://github.com/your-username/ComfyUI-TuZi-Flux-Kontext.git
+git clone https://github.com/LKbaba/ComfyUI-TuZi-Flux-Kontext.git
 cd ComfyUI-TuZi-Flux-Kontext
 
 # 安装依赖
@@ -54,7 +54,7 @@ pip install -r requirements.txt
 便携版用户需要使用ComfyUI自带的Python环境安装依赖：
 
 ```powershell
-# 在 ComfyUI 根目录执行
+# 在 ComfyUI 根目录执行 例如：PS E:\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable>
 .\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext\requirements.txt
 ```
 
