@@ -122,7 +122,7 @@ class FluxKontext_ImageToImage(_FluxKontextNodeBase):
             "required": {
                 "image": ("IMAGE",),
                 "prompt": ("STRING", {"multiline": True, "default": "The character is sitting cross-legged on the sofa, and the Dalmatian is lying on the blanket sleeping."}),
-                "model": (["flux-kontext-max"],),
+                "model": (["flux-kontext-pro", "flux-kontext-max"], {"default": "flux-kontext-max"}),
                 "num_images": ([1, 2, 4], {"default": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                 "guidance_scale": ("FLOAT", {"default": 3.5, "min": 0.0, "max": 10.0, "step": 0.1}),
