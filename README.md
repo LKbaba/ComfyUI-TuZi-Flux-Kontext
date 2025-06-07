@@ -1,6 +1,6 @@
 # ComfyUI-TuZi-Flux-Kontext
 
-🐰 **强大的 Flux-Kontext 图像生成** ComfyUI 自定义节点，使用兔子AI官方API，支持文生图、图生图和多图生图。
+🐰 **强大的 Flux-Kontext 图像生成** ComfyUI 自定义节点，使用兔子AI官方API，支持文生图、图生图和多图生图。 Pro模型0.14元/次，Max模型0.28元/次。
 
 ---
 
