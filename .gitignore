@@ -33,3 +33,6 @@ Thumbs.db
 # 临时文件
 *.tmp
 *.temp
+test_all_nodes.py
+/test
+test_simple.py

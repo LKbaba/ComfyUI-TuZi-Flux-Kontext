@@ -197,14 +197,14 @@ class FluxKontextAPI:
             
             try:
                 # 下载图像
-                print(f"⬇️ 正在从 {image_url} 下载图像...")
+                print("⬇️ 正在下载生成的图像...")
                 timeout = self.config.get_config('timeout', 60) # 提供一个默认值
                 pil_image = download_image(image_url, timeout=timeout)
                 if pil_image is None:
                     # 这里的错误信息可以更具体
-                    raise FluxKontextAPIError(f"从URL下载图片失败 (可能是网络超时或链接已失效): {image_url}")
+                    raise FluxKontextAPIError("图像下载失败，可能是网络超时或服务异常")
                 
-                print("✅ 图像下载并处理成功")
+                print("✅ 图像生成并下载成功")
                 # 直接返回PIL图像和URL，这是与之前最大的不同
                 return pil_image, image_url
 

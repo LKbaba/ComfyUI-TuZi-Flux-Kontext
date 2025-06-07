@@ -7,6 +7,7 @@ import torch
 import random
 import os
 import tempfile
+import logging
 from typing import Any, Tuple, Optional, Dict, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -15,9 +16,42 @@ try:
 except ImportError:
     fal_client = None
 
-from .api_client import FluxKontextAPI, FluxKontextAPIError
-from .config import default_config
-from .utils import download_image, pil_to_tensor, format_error_message, tensor_to_pil
+# 尝试相对导入，如果失败则使用绝对导入
+try:
+    from .api_client import FluxKontextAPI, FluxKontextAPIError
+    from .config import default_config
+    from .utils import download_image, pil_to_tensor, format_error_message, tensor_to_pil
+except ImportError:
+    from api_client import FluxKontextAPI, FluxKontextAPIError
+    from config import default_config
+    from utils import download_image, pil_to_tensor, format_error_message, tensor_to_pil
+
+class SuppressFalLogs:
+    """临时抑制FAL相关的详细HTTP日志的上下文管理器"""
+    
+    def __init__(self):
+        self.loggers_to_suppress = [
+            'httpx',
+            'httpcore', 
+            'fal_client',
+            'fal',
+            'urllib3.connectionpool'
+        ]
+        self.original_levels = {}
+    
+    def __enter__(self):
+        # 保存原始日志级别并设置为WARNING以上
+        for logger_name in self.loggers_to_suppress:
+            logger = logging.getLogger(logger_name)
+            self.original_levels[logger_name] = logger.level
+            logger.setLevel(logging.WARNING)
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # 恢复原始日志级别
+        for logger_name, original_level in self.original_levels.items():
+            logger = logging.getLogger(logger_name)
+            logger.setLevel(original_level)
 
 class _FluxKontextNodeBase:
     """
@@ -52,20 +86,22 @@ class _FluxKontextNodeBase:
                 return e
 
         with ThreadPoolExecutor(max_workers=min(num_images, 4)) as executor:
-            seeds = [seed + i if seed != 0 else random.randint(0, 0xffffffffffffffff) for i in range(num_images)]
+            # 限制seed在32位整数范围内，避免API解析错误
+            seeds = [seed + i if seed != 0 else random.randint(1, 2147483647) for i in range(num_images)]
             future_to_seed = {executor.submit(generate_single_image, s): s for s in seeds}
             
             for future in as_completed(future_to_seed):
                 try:
                     result = future.result()
                     if isinstance(result, Exception):
-                        errors.append(f"Seed {future_to_seed[future]} failed: {result}")
+                        # 简化错误信息，不显示技术细节
+                        errors.append(f"图像生成失败")
                     else:
                         pil_img, url = result
                         results_pil.append(pil_img)
                         result_urls.append(url)
                 except Exception as exc:
-                    errors.append(f"Seed {future_to_seed[future]} raised an exception: {exc}")
+                    errors.append(f"图像生成异常")
         
         return results_pil, result_urls, errors
 
@@ -107,10 +143,9 @@ class FluxKontext_TextToImage(_FluxKontextNodeBase):
             return self._create_error_result(f"All image generations failed.\n{'; '.join(errors)}")
 
         success_count = len(results_pil)
-        final_status = f"Mode: Text-to-Image | Success: {success_count}/{num_images}"
+        final_status = f"🐰文生图模式 | 成功生成: {success_count}/{num_images} 张图像"
         if errors:
-            final_status += f" | Failed: {len(errors)}"
-        final_status += f"\nURLs:\n" + "\n".join(result_urls)
+            final_status += f" | 失败: {len(errors)} 张"
         
         return {"ui": {"string": [final_status]}, "result": (pil_to_tensor(results_pil), final_status)}
 
@@ -146,8 +181,6 @@ class FluxKontext_ImageToImage(_FluxKontextNodeBase):
             return self._create_error_result("Error: 'fal-client' not installed. Please run pip install -r requirements.txt", image)
 
         fal_key = default_config.get_fal_key()
-        if not fal_key:
-            return self._create_error_result(default_config.fal_key_error_message, image)
         
         os.environ['FAL_KEY'] = fal_key
         temp_file_path = None
@@ -160,7 +193,8 @@ class FluxKontext_ImageToImage(_FluxKontextNodeBase):
                 pil_images[0].save(temp_file, 'PNG')
                 temp_file_path = temp_file.name
             
-            uploaded_url = fal_client.upload_file(temp_file_path)
+            with SuppressFalLogs():
+                uploaded_url = fal_client.upload_file(temp_file_path)
             final_prompt = f"{uploaded_url} {kwargs['prompt']}"
 
         except Exception as e:
@@ -180,10 +214,9 @@ class FluxKontext_ImageToImage(_FluxKontextNodeBase):
             return self._create_error_result(f"All image generations failed.\n{'; '.join(errors)}", image)
 
         success_count = len(results_pil)
-        final_status = f"Mode: Image-to-Image | Success: {success_count}/{num_images}"
+        final_status = f"🐰图生图模式 | 成功生成: {success_count}/{num_images} 张图像"
         if errors:
-            final_status += f" | Failed: {len(errors)}"
-        final_status += f"\nReference URL: {uploaded_url}\nResult URLs:\n" + "\n".join(result_urls)
+            final_status += f" | 失败: {len(errors)} 张"
         
         return {"ui": {"string": [final_status]}, "result": (pil_to_tensor(results_pil), final_status)}
 
@@ -226,8 +259,6 @@ class FluxKontext_MultiImageToImage(_FluxKontextNodeBase):
             return self._create_error_result(default_config.api_key_error_message)
 
         fal_key = default_config.get_fal_key()
-        if not fal_key:
-            return self._create_error_result(default_config.fal_key_error_message)
         
         os.environ['FAL_KEY'] = fal_key
         
@@ -242,7 +273,8 @@ class FluxKontext_MultiImageToImage(_FluxKontextNodeBase):
                     pil_images[0].save(temp_file, 'PNG')
                     temp_files.append(temp_file.name)
                 
-                uploaded_urls.append(fal_client.upload_file(temp_files[-1]))
+                with SuppressFalLogs():
+                    uploaded_urls.append(fal_client.upload_file(temp_files[-1]))
             
             if not uploaded_urls:
                 return self._create_error_result("All input images could not be processed or uploaded.")
@@ -269,11 +301,9 @@ class FluxKontext_MultiImageToImage(_FluxKontextNodeBase):
             return self._create_error_result(f"All image generations failed.\n{'; '.join(errors)}")
 
         success_count = len(results_pil)
-        final_status = f"Mode: Multi-Image ({len(uploaded_urls)} refs) | Success: {success_count}/{num_images}"
+        final_status = f"🐰多图生图模式 | 参考图片: {len(uploaded_urls)} 张 | 成功生成: {success_count}/{num_images} 张图像"
         if errors:
-            final_status += f" | Failed: {len(errors)}"
-        final_status += f"\nReference URLs:\n" + "\n".join(uploaded_urls)
-        final_status += f"\nResult URLs:\n" + "\n".join(result_urls)
+            final_status += f" | 失败: {len(errors)} 张"
 
         return {"ui": {"string": [final_status]}, "result": (pil_to_tensor(results_pil), final_status)}
 

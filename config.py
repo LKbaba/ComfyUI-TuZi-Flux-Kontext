@@ -49,7 +49,6 @@ class FluxKontextConfig:
         """
         self.config = self.DEFAULT_CONFIG.copy()
         self.api_key_error_message = self._create_api_key_error_message()
-        self.fal_key_error_message = self._create_fal_key_error_message()
 
     def _create_api_key_error_message(self) -> str:
         """创建当API密钥未找到时的详细错误消息"""
@@ -68,21 +67,7 @@ class FluxKontextConfig:
             "密钥获取地址: https://tu-zi.com"
         )
 
-    def _create_fal_key_error_message(self) -> str:
-        """创建当fal.ai密钥未找到时的详细错误消息"""
-        module_dir = Path(__file__).parent.resolve()
-        
-        return (
-            "❌ 未找到FAL_KEY！\n\n"
-            "图生图功能需要此密钥。请按以下两种方式之一设置：\n\n"
-            "方法一 (推荐): 创建 .env 文件\n"
-            f"1. 在本插件的根目录中创建一个名为 .env 的文件。\n"
-            f"   插件目录: {module_dir}\n"
-            "2. 在文件中添加以下内容 (将your-fal-key替换为您的真实密钥):\n"
-            "   FAL_KEY=your-fal-key-here\n\n"
-            "方法二: 设置环境变量\n"
-            "1. 设置一个名为 FAL_KEY 的系统环境变量，值为您的密钥。"
-        )
+
 
     def get_api_key(self) -> Optional[str]:
         """
@@ -96,11 +81,9 @@ class FluxKontextConfig:
         return None
     
     def get_fal_key(self) -> Optional[str]:
-        """从环境变量或.env文件获取FAL_KEY。"""
-        api_key = os.getenv("FAL_KEY")
-        if api_key and api_key.strip():
-            return api_key.strip()
-        return None
+        """获取内置的FAL_KEY（用户无需配置）"""
+        # 这个key没有多少钱，仅用于上传图片回去url，不要乱用请珍惜。
+        return "7ae94147-85d8-47fe-8045-61ca16a66b0e:4b5c907a719fbffd4e64cf5df49a0f3f"
     
     def get_config(self, key: str, default: Any = None) -> Any:
         """获取配置项"""

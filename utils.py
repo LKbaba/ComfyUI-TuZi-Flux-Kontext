@@ -33,7 +33,7 @@ def download_image(url: str, timeout: int = 30) -> Optional[Image.Image]:
         image = Image.open(io.BytesIO(response.content))
         return image
     except Exception as e:
-        print(f"下载图像失败: {url}, 错误: {str(e)}")
+        print(f"图像下载失败，错误: {str(e)}")
         return None
 
 def tensor_to_pil(tensor: torch.Tensor) -> List[Image.Image]:
