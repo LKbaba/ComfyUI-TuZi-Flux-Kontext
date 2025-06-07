@@ -97,17 +97,17 @@ pip install -r requirements.txt
 **Git 克隆方式：**
 ```powershell
 # 在 ComfyUI 根目录执行 例如：PS E:\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable>
-.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext\requirements.txt
+ .\python_embeded\python.exe -m pip install --force-reinstall -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext\requirements.txt
 ```
 
 **ZIP 下载方式：**
 ```powershell
 # ⚠️ 注意：如果是下载ZIP解压，文件夹名称为 ComfyUI-TuZi-Flux-Kontext-main
 # 请先重命名文件夹，或使用以下命令：
-.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext-main\requirements.txt
+ .\python_embeded\python.exe -m pip install --force-reinstall -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext-main\requirements.txt
 
 # 重命名后推荐使用：
-.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext\requirements.txt
+ .\python_embeded\python.exe -m pip install --force-reinstall -r .\ComfyUI\custom_nodes\ComfyUI-TuZi-Flux-Kontext\requirements.txt
 ```
 
 ---
