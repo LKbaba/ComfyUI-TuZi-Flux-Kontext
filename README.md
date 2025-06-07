@@ -66,7 +66,7 @@ pip install -r requirements.txt
 
 您只需要获取 **一个** API 密钥：
 
-- **兔子AI密钥**: 访问 [兔子AI官网](https://tu-zi.com) 登录后在控制台获取
+- **兔子AI密钥**: 访问 [兔子AI官网](https://api.tu-zi.com/panel) 登录后在控制台获取
 
 ### 配置方法
 
