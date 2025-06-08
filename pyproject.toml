@@ -1,0 +1,20 @@
+[project]
+name = "ComfyUI-TuZi-Flux-Kontext"
+description = "Flux.1 Kontext, supporting text-to-image and image(multi)-to-image  by TuZi-api."
+version = "1.0.0"
+license = { file = "LICENSE" }
+dependencies = [
+    "requests",
+    "python-dotenv",
+    "fal-client",
+    "httpx",
+    "httpcore"
+]
+
+[project.urls]
+Repository = "https://github.com/LKbaba/ComfyUI-TuZi-Flux-Kontext"
+
+[tool.comfy]
+PublisherId = "nokugua"
+DisplayName = "Flux.1 Kontext api in TuZi"
+Icon = "" # Optional: URL to an icon (SVG, PNG, JPG or GIF, MAX. 800x400px) 

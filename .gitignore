@@ -36,3 +36,6 @@ Thumbs.db
 test_all_nodes.py
 /test
 test_simple.py
+
+# Build artifacts
+*.zip
