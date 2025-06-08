@@ -52,14 +52,14 @@ ComfyUI-TuZi-Flux-Kontext 是一个专业的 ComfyUI 扩展，提供完整的 Fl
 
 ---
 
-## 📦 安装方法
+## 📦 安装方法 (第一次重启安装完成后，关闭ComfyUI，填写 .env 文件中的api-key。再重启一遍 ComfyUI 即可运行)
 
 ### 方法一：通过 ComfyUI Manager 安装（推荐）
 
 1. 在 ComfyUI 界面中打开 **ComfyUI Manager**
 2. 点击 **"Install via Git URL"**
 3. 输入：`https://github.com/LKbaba/ComfyUI-TuZi-Flux-Kontext.git`
-4. 安装完成后重启 ComfyUI
+4. 第一次重启安装完成后，关闭ComfyUI，填写 .env 文件中的api-key。再重启一遍 ComfyUI 即可运行。
 
 ### 方法二：手动安装
 
