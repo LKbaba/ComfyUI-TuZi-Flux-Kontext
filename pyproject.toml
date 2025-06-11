@@ -1,7 +1,7 @@
 [project]
 name = "ComfyUI-TuZi-Flux-Kontext"
 description = "Flux.1 Kontext, supporting text-to-image and image(multi)-to-image  by api."
-version = "1.0.1"
+version = "1.0.2"
 license = { file = "LICENSE" }
 dependencies = [
     "requests",

@@ -113,7 +113,7 @@ class FluxKontext_TextToImage(_FluxKontextNodeBase):
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": 'Extreme close-up of a single tiger eye, direct frontal view. Detailed iris and pupil. Sharp focus on eye texture and color. Natural lighting to capture authentic eye shine and depth. The word "FLUX" is painted over it in big, white brush strokes with visible texture.'}),
                 "model": (["flux-kontext-pro", "flux-kontext-max"], {"default": "flux-kontext-max"}),
-                "num_images": ([1, 2, 4], {"default": 1}),
+                "num_images": ([1, 2, 3, 4], {"default": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                 "guidance_scale": ("FLOAT", {"default": 3.5, "min": 0.0, "max": 10.0, "step": 0.1}),
                 "num_inference_steps": ("INT", {"default": 28, "min": 1, "max": 100}),
@@ -158,7 +158,7 @@ class FluxKontext_ImageToImage(_FluxKontextNodeBase):
                 "image": ("IMAGE",),
                 "prompt": ("STRING", {"multiline": True, "default": "The character is sitting cross-legged on the sofa, and the Dalmatian is lying on the blanket sleeping."}),
                 "model": (["flux-kontext-pro", "flux-kontext-max"], {"default": "flux-kontext-max"}),
-                "num_images": ([1, 2, 4], {"default": 1}),
+                "num_images": ([1, 2, 3, 4], {"default": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                 "guidance_scale": ("FLOAT", {"default": 3.5, "min": 0.0, "max": 10.0, "step": 0.1}),
                 "num_inference_steps": ("INT", {"default": 28, "min": 1, "max": 100}),
@@ -228,7 +228,7 @@ class FluxKontext_MultiImageToImage(_FluxKontextNodeBase):
             "required": {
                 "prompt": ("STRING", {"multiline": True, "default": "The character is sitting cross-legged on the sofa, and the Dalmatian is lying on the blanket sleeping."}),
                 "model": (["flux-kontext-pro", "flux-kontext-max"], {"default": "flux-kontext-max"}),
-                "num_images": ([1, 2, 4], {"default": 1}),
+                "num_images": ([1, 2, 3, 4], {"default": 1}),
                 "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                 "guidance_scale": ("FLOAT", {"default": 3.5, "min": 0.0, "max": 10.0, "step": 0.1}),
                 "num_inference_steps": ("INT", {"default": 28, "min": 1, "max": 100}),
