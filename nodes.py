@@ -79,7 +79,12 @@ class _FluxKontextNodeBase:
         def generate_single_image(current_seed):
             try:
                 api_client = FluxKontextAPI(api_key=tuzi_api_key)
-                api_params = {"prompt": final_prompt, "model": model, "seed": current_seed, **kwargs}
+                api_params = {
+                    "prompt": final_prompt,
+                    "model": model,
+                    "seed": current_seed,
+                }
+                api_params.update(kwargs)
                 pil_image, url = api_client.generate_image(**api_params)
                 return pil_image, url
             except Exception as e:
