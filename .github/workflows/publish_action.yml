@@ -2,10 +2,8 @@ name: Publish to Comfy registry
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-    paths:
-      - "pyproject.toml"
+    tags:
+      - 'v*'  # 触发条件：当推送以 'v' 开头的标签时（如 v1.0.6）
 
 jobs:
   publish-node:
