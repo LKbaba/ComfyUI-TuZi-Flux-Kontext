@@ -8,7 +8,7 @@ from .nodes import NODE_CLASS_MAPPINGS, NODE_DISPLAY_NAME_MAPPINGS
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
 
 # 版本信息 - 必须与 pyproject.toml 中的版本保持完全一致
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 
 # 插件作者信息
 __author__ = "ComfyUI-TuZi-Flux-Kontext Team"
