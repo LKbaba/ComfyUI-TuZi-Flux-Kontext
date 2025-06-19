@@ -1,6 +1,6 @@
 [project]
 name = "ComfyUI-TuZi-Flux-Kontext"
-description = "Flux.1 Kontext: A powerful API service supporting text-to-image and multi-image-to-image generation. The 'pro' model costs only about RMB 0.14 (US$0.02) per image."
+description = "Flux.1 Kontext supporting text-to-image and multi-image-to-image generation. The 'pro' model costs only about RMB 0.14 (US$0.02) per image."
 version = "1.0.5"
 license = { file = "LICENSE" }
 dependencies = [
