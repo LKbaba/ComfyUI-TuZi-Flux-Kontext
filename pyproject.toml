@@ -1,7 +1,7 @@
 [project]
 name = "ComfyUI-TuZi-Flux-Kontext"
 description = "Flux.1 Kontext: A powerful API service supporting text-to-image and multi-image-to-image generation. The professional diffusion model costs only about RMB¥0.14 (US$0.02) per image."
-version = "1.0.3"
+version = "1.0.4"
 license = { file = "LICENSE" }
 dependencies = [
     "requests",
@@ -17,4 +17,4 @@ Repository = "https://github.com/LKbaba/ComfyUI-TuZi-Flux-Kontext"
 [tool.comfy]
 PublisherId = "nokugua"
 DisplayName = "Flux.1 Kontext api in TuZi"
-Icon = "" # Optional: URL to an icon (SVG, PNG, JPG or GIF, MAX. 800x400px) 
+Icon = "https://raw.githubusercontent.com/LKbaba/ComfyUI-TuZi-Flux-Kontext/main/images/text-to-image-demo.png" 
